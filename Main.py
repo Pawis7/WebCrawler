@@ -1,54 +1,35 @@
 import requests
 from bs4 import BeautifulSoup
-from openpyxl import Workbook
+import pandas as pd
 
-# Crear el libro de trabajo y la hoja
-workbook = Workbook()
-sheet = workbook.active
-sheet.title = "IMDb Top 250 Movies"
-sheet.append(['Number', 'Movie URL', 'Movie Name', 'Movie Year'])
+# Paso 1: Definir la URL de la página principal de Wikipedia
+url = 'https://es.wikipedia.org/wiki/Wikipedia:Portada'
 
-# URL de IMDb para las mejores películas
-url = "https://www.imdb.com/chart/top"
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
-}
+# Paso 2: Realizar la solicitud HTTP para obtener el contenido de la página
+response = requests.get(url)
 
-# Hacer la solicitud
-response = requests.get(url, headers=headers)
+# Verificar que la solicitud fue exitosa
+if response.status_code == 200:
+    # Paso 3: Parsear el contenido HTML usando BeautifulSoup
+    soup = BeautifulSoup(response.content, 'html.parser')
 
-# Verificar el código de estado
-if response.status_code != 200:
-    print(f"Failed to retrieve the webpage. Status Code: {response.status_code}")
-    exit()
+    # Paso 4: Buscar los artículos destacados o cualquier sección que te interese
+    # Para este caso, vamos a buscar los artículos destacados
+    articles = []
 
-# Parsear el contenido HTML de la página
-soup = BeautifulSoup(response.content, 'lxml')
+    # Buscamos todos los enlaces dentro de la sección "Artículos destacados"
+    for item in soup.find_all('div', class_='mp-upper'):
+        for link in item.find_all('a', href=True):
+            title = link.get_text()
+            url = 'https://es.wikipedia.org' + link['href']  # Crear URL completa
+            articles.append((title, url))
 
-# Encontrar las películas en el ranking
-movies = soup.find_all('td', class_='titleColumn')
+    # Paso 5: Crear un DataFrame de pandas con los títulos y enlaces de los artículos
+    df = pd.DataFrame(articles, columns=['Título', 'URL'])
 
-num = 0
+    # Paso 6: Guardar la información en un archivo Excel
+    df.to_excel('articulos_destacados_wikipedia.xlsx', index=False, engine='openpyxl')
 
-for movie in movies:
-    num += 1
-    try:
-        # Obtener el nombre y el año de la película
-        movie_name = movie.a.text
-        movie_year = movie.span.text.strip('()')  # Eliminar los paréntesis
-
-        # Obtener la URL de la película
-        movie_url = 'https://www.imdb.com' + movie.a['href']
-
-        # Escribir los datos en el archivo de Excel
-        sheet.append([num, movie_url, movie_name, movie_year])
-
-        print(f"{num}. {movie_name} - {movie_year} - {movie_url}")
-    
-    except Exception as e:
-        print(f"Error processing movie: {e}")
-        continue
-
-# Guardar el archivo de Excel
-workbook.save('imdb_top_250_movies.xlsx')
-print("Data has been saved to imdb_top_250_movies.xlsx")
+    print("Los datos fueron guardados en 'articulos_destacados_wikipedia.xlsx'.")
+else:
+    print(f"Error al acceder a la página. Código de estado: {response.status_code}")
