@@ -1,42 +1,54 @@
 import requests
 from bs4 import BeautifulSoup
-from xlwt import Workbook
+from openpyxl import Workbook
 
-workbook = Workbook(encoding='utf-8')
-table = workbook.add_sheet('data')
-table.write(0, 0, 'Number')
-table.write(0, 1, 'movie_url')
-table.write(0, 2, 'movie_name')
-table.write(0, 3, 'movie_introduction')
+# Crear el libro de trabajo y la hoja
+workbook = Workbook()
+sheet = workbook.active
+sheet.title = "IMDb Top 250 Movies"
+sheet.append(['Number', 'Movie URL', 'Movie Name', 'Movie Year'])
 
-line = 1
-url = "https://www.rottentomatoes.com/top/bestofrt/"
+# URL de IMDb para las mejores películas
+url = "https://www.imdb.com/chart/top"
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36 QIHU 360SE'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
 }
-f = requests.get(url, headers=headers)
-movies_lst = []
-soup = BeautifulSoup(f.content, 'lxml')
-movies = soup.find('table', {'class': 'table'}).find_all('a')
+
+# Hacer la solicitud
+response = requests.get(url, headers=headers)
+
+# Verificar el código de estado
+if response.status_code != 200:
+    print(f"Failed to retrieve the webpage. Status Code: {response.status_code}")
+    exit()
+
+# Parsear el contenido HTML de la página
+soup = BeautifulSoup(response.content, 'lxml')
+
+# Encontrar las películas en el ranking
+movies = soup.find_all('td', class_='titleColumn')
 
 num = 0
-for anchor in movies:
-    urls = 'https://www.rottentomatoes.com' + anchor['href']
-    movies_lst.append(urls)
+
+for movie in movies:
     num += 1
-    movie_url = urls
-    movie_f = requests.get(movie_url, headers=headers)
-    movie_soup = BeautifulSoup(movie_f.content, 'lxml')
-    movie_content = movie_soup.find('div', {'class': 'movie_synopsis clamp clamp-6 js-clamp'})
-    movie_name = anchor.string.strip() if anchor.string else 'N/A'
-    movie_intro = movie_content.text.strip() if movie_content else 'N/A'
+    try:
+        # Obtener el nombre y el año de la película
+        movie_name = movie.a.text
+        movie_year = movie.span.text.strip('()')  # Eliminar los paréntesis
+
+        # Obtener la URL de la película
+        movie_url = 'https://www.imdb.com' + movie.a['href']
+
+        # Escribir los datos en el archivo de Excel
+        sheet.append([num, movie_url, movie_name, movie_year])
+
+        print(f"{num}. {movie_name} - {movie_year} - {movie_url}")
     
-    table.write(line, 0, num)
-    table.write(line, 1, movie_url)
-    table.write(line, 2, movie_name)
-    table.write(line, 3, movie_intro)
-    line += 1
+    except Exception as e:
+        print(f"Error processing movie: {e}")
+        continue
 
-    print(num, urls, '\n', 'Movie:', movie_name)
-
-workbook.save('movies.xls')
+# Guardar el archivo de Excel
+workbook.save('imdb_top_250_movies.xlsx')
+print("Data has been saved to imdb_top_250_movies.xlsx")
