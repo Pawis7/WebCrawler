@@ -2,14 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-
 def scrape_aliexpress(product):
     # Reemplaza los espacios por guiones
     product = product.replace(" ", "-")
     
     # URL base con el producto
-    #base_url = f"https://es.aliexpress.com/w/wholesale-{product}.html?spm"
-    base_url = f"https://es.{product}.com"
+    base_url = f"https://es.aliexpress.com/w/wholesale-{product}.html?spm"
+    
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
     }
