@@ -16,7 +16,7 @@ def scrape_aliexpress(product):
     productos_data = []
     page = 1  # Empezamos con la primera página
 
-    while True:  # Continuar hasta que no haya más productos
+    while page != 11:  # Continuar hasta que no haya más productos
         url = f"{base_url}&page={page}"  # Modificar la URL para cambiar de página
         print(f"Buscando en {url} \n")
 
@@ -48,7 +48,7 @@ def scrape_aliexpress(product):
                 
                 page += 1  # Incrementar el número de página
             else:
-                print("No se encontró la lista de productos en la página.")
+                print(f"No se encontró la lista de productos en la página. Codigo {response.status_code}")
                 break
         else:
             print("Error al realizar la solicitud.")

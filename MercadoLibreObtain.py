@@ -28,7 +28,7 @@ def scrape_mercadolibre(product):
         soup = BeautifulSoup(response.content, "html.parser")
 
         # Buscar el contenedor de productos
-        contenedor_productos = soup.find_all("li", class_="ui-search-layout__item shops__layout-item")
+        contenedor_productos = soup.find_all("li", class_="ui-search-layout__item shops__layout-item") or soup.find_all("li", class_="ui-search-layout__item") 
         # Verificar si el contenedor de productos fue encontrado
         if contenedor_productos:
             print(f"Se encontraron {len(contenedor_productos)} productos.\n")
