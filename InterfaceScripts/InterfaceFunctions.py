@@ -87,16 +87,15 @@ class MainWindow(QMainWindow):
         self.ui.tableWidget.setRowCount(len(data))  # Establecer el número de filas
         self.ui.tableWidget.setColumnCount(len(data.columns))  # Establecer el número de columnas
         self.ui.tableWidget.setHorizontalHeaderLabels(data.columns)  # Usar las etiquetas del archivo Excel
-
+        
+        # Añadir $ a la columna de precios
+        data["Precio"] = data["Precio"].apply(lambda x: f"${x:.2f}")
+        
         # Llenar la tabla con los datos
         for row_idx, row in data.iterrows():
             for col_idx, value in enumerate(row):
                 # Crear el elemento de la celda
                 item = QTableWidgetItem(str(value))
-
-                # Si la columna es "Precio", establecer el dato como número
-                if data.columns[col_idx] == "Precio":
-                    item.setData(0, float(value))  # Qt.UserRole = 0, usamos el float para ordenar como número
 
                 # Añadir el elemento a la tabla
                 self.ui.tableWidget.setItem(row_idx, col_idx, item)
