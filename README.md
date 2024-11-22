@@ -5,4 +5,4 @@
 
 - Then it will read them to pass them to the table of the interface and to be able to interact with it, to see the links and prices, this filtering our product avoiding to have to make many different searches.
 
--(A bit more direct than google shops imo).
+(A bit more direct than google shops imo).
