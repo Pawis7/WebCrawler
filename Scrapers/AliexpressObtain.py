@@ -14,9 +14,9 @@ def scrape_aliexpress(product):
     }
 
     productos_data = []
-    page = 1  # Empezamos con la primera página
+    page = 0  # Empezamos con la primera página
 
-    while page != 11:  # Continuar hasta que no haya más productos
+    while page != 6:  # Continuar hasta que no haya más productos
         url = f"{base_url}&page={page}"  # Modificar la URL para cambiar de página
         print(f"Buscando en {url} \n")
 
@@ -38,8 +38,13 @@ def scrape_aliexpress(product):
                     if precio_elemento:
                         precio = "".join([span.text.strip() for span in precio_elemento.find_all("span") if span.text.strip()])
                         
+                        # Eliminar el símbolo de la moneda, si es necesario (como "MX$", "￥", etc.)
+                        precio = precio.replace("MX$", "").replace("￥", "").strip()
+
+                        
                     if titulo and link and precio:
                         producto_info = {
+                            'Etiqueta': 'Aliexpress',
                             'Producto': titulo['title'],
                             'Link': f"https:{link.get('href')}",
                             'Precio': precio
@@ -58,7 +63,7 @@ def scrape_aliexpress(product):
     df = pd.DataFrame(productos_data)
 
     if not df.empty:
-        df.to_excel("productos_aliexpress.xlsx", index=False)
+        df.to_excel("aliexpress.xlsx", index=False)
         print("Los datos se han guardado correctamente en 'productos_aliexpress.xlsx'.")
     else:
         print("No se encontraron productos para guardar.")
